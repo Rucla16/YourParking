@@ -42,14 +42,14 @@ export default defineConfig({
 
       // Configuració del manifest
       manifest: {
-        name:             'SensorCam Explorer',
-        short_name:       'SensorCam',
-        description:      'Càmera i sensors del mòbil en una PWA',
+        name:             'YourParking - On és el meu cotxe?',
+        short_name:       'YourParking',
+        description:      "Guarda la localització de l'automòbil i fes fotos del pàrquing",
         start_url:        '/',
         display:          'standalone',
         orientation:      'portrait',
-        background_color: '#0f0f1a',
-        theme_color:      '#0f0f1a',
+        background_color: '#800080',
+        theme_color:      '#800080',
         lang:             'ca',
         icons: [
           {
@@ -107,6 +107,21 @@ export default defineConfig({
             },
           },
           {
+            
+            urlPattern: /^https:\/\/{s}\.basemaps\.cartocdn\.com\/.*\/.*\/.*\.png/i,
+            
+            urlPattern: /^https:\/\/.*\.tile\.openstreetmap\.org\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-tiles-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, 
+              },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
+          {
             // Imatges locals → Cache First
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
             handler:    'CacheFirst',
@@ -123,7 +138,7 @@ export default defineConfig({
 
       // Opcions del dev server per a PWA en desenvolupament
       devOptions: {
-        enabled: true,
+        enabled: false,
         type:    'module',
       },
     }),

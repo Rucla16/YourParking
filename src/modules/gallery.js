@@ -1,26 +1,22 @@
-// ================================================
-//  GALLERY - Gestió de les fotos capturades
-// ================================================
-
 import { showToast } from './ui.js';
 
-const photos = [];
-let   currentPhoto = null;
+const photos = JSON.parse(localStorage.getItem('parked_car_photos')) || [];
+let currentPhoto = null;
 
-// -----------------------------------------------
-// INIT
-// -----------------------------------------------
+
 export function initGallery() {
-  // Escolta l'event de foto capturada des del mòdul camera
+
   document.addEventListener('photo:captured', (e) => {
     addPhoto(e.detail);
   });
 
-  // Netejar galeria
+  renderSavedPhotos();
+
+  
   document.getElementById('clearGallery')
     ?.addEventListener('click', clearGallery);
 
-  // Modal
+  
   document.getElementById('closeModal')
     ?.addEventListener('click', closeModal);
   document.getElementById('modalOverlay')
@@ -29,61 +25,66 @@ export function initGallery() {
     ?.addEventListener('click', downloadPhoto);
 }
 
-// -----------------------------------------------
-// AFEGIR FOTO
-// -----------------------------------------------
 function addPhoto(photoData) {
   const photo = { id: Date.now(), ...photoData };
   photos.unshift(photo);
 
-  const grid  = document.getElementById('galleryGrid');
+  localStorage.setItem('parked_car_photos', JSON.stringify(photos));
+
+  renderPhotoItem(photo);
+}
+
+function renderPhotoItem(photo) {
+  const grid = document.getElementById('galleryGrid');
   const empty = document.getElementById('galleryEmpty');
   if (!grid) return;
 
   empty?.classList.add('hidden');
 
   const item = document.createElement('div');
-  item.className    = 'gallery-item';
-  item.dataset.id   = photo.id;
-  item.innerHTML    = `
-    <img src="${photo.dataUrl}" alt="Foto ${photo.timestamp}" loading="lazy"/>
-    <div class="gallery-item-overlay">
-      <div class="gallery-effect-tag">${photo.effect}</div>
-      <div>${formatHour(photo.timestamp)}</div>
+  item.className = 'gallery-item';
+  item.innerHTML = `
+    <img src="${photo.dataUrl}" alt="Captura" loading="lazy" />
+    <div class="gallery-item-info">
+      <span>📅 ${photo.timestamp.split(' ')[0]}</span>
     </div>
   `;
 
   item.addEventListener('click', () => openModal(photo));
-
-  // Insertar al principi (fotos noves primer)
   grid.insertBefore(item, grid.firstChild);
 }
 
-// -----------------------------------------------
-// NETEJAR
-// -----------------------------------------------
-function clearGallery() {
-  if (photos.length === 0) {
-    showToast('📭 Ja no hi ha fotos', 'info');
-    return;
-  }
-
-  photos.length = 0;
-
-  const grid  = document.getElementById('galleryGrid');
-  const empty = document.getElementById('galleryEmpty');
+function renderSavedPhotos() {
+  const grid = document.getElementById('galleryGrid');
   if (!grid) return;
+  
+  // Limpio contenido dinámico viejo sin tocar el div de "vacío"
+  const items = grid.querySelectorAll('.gallery-item');
+  items.forEach(el => el.remove());
 
-  // Eliminar items però mantenir l'empty state
-  [...grid.querySelectorAll('.gallery-item')].forEach(el => el.remove());
-  empty?.classList.remove('hidden');
+  if (photos.length > 0) {
+    document.getElementById('galleryEmpty')?.classList.add('hidden');
+    // Pinto de atrás hacia adelante para mantener el orden cronológico invertido
+    [...photos].reverse().forEach(photo => {
+      renderPhotoItem(photo);
+    });
+  } else {
+    document.getElementById('galleryEmpty')?.classList.remove('hidden');
+  }
+}
 
+
+function clearGallery() {
+  photos.length = 0;
+  localStorage.removeItem('parked_car_photos');
+  
+  const items = document.querySelectorAll('.gallery-item');
+  items.forEach(el => el.remove());
+  
+  document.getElementById('galleryEmpty')?.classList.remove('hidden');
   showToast('🗑️ Galeria neta', 'info');
 }
 
-// -----------------------------------------------
-// MODAL
-// -----------------------------------------------
 function openModal(photo) {
   currentPhoto = photo;
 
@@ -123,9 +124,6 @@ function downloadPhoto() {
   showToast('⬇️ Foto descarregada!', 'success');
 }
 
-// -----------------------------------------------
-// UTILS
-// -----------------------------------------------
 function formatHour(ts) {
   return ts.split(', ')[1] ?? ts;
 }

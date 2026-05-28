@@ -5,7 +5,7 @@
 import './style.css';
 import { initTabs }    from './modules/ui.js';
 import { initCamera }  from './modules/camera.js';
-import { initSensors } from './modules/sensors.js';
+import { initSensors } from './modules/location.js';
 import { initGallery } from './modules/gallery.js';
 import { showToast }   from './modules/ui.js';
 
@@ -23,7 +23,7 @@ function showApp() {
     }, { once: true });
 
     app?.classList.remove('hidden');
-    showToast('👋 Benvingut/da a SensorCam!', 'info');
+    showToast('👋 Benvingut/da a YourParking!', 'info');
   }, 2000);
 }
 
